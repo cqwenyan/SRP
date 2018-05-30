@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "com.unity.purchasing": "exclude",
+    "com.unity.ads": "exclude",
+    "com.unity.package-manager-ui": "1.9.9",
+    "com.unity.textmeshpro": "1.2.2"
+  }
+}
