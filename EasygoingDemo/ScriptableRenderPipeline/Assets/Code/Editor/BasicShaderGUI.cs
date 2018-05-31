@@ -46,10 +46,7 @@ namespace WhaleYan {
         public override void AssignNewShaderToMaterial(Material material, Shader oldShader, Shader newShader) {
             Debug.Log("Assign new Shader");
             base.AssignNewShaderToMaterial(material, oldShader, newShader);
-            MaterialProperty prop = MaterialEditor.GetMaterialProperty(
-                new Object[1] { material },
-                MaterialProps.ZWrite);
-
+            MaterialProperty prop = MaterialEditor.GetMaterialProperty(new Object[1] { material }, MaterialProps.ZWrite);
             if (prop != null)
                 material.SetShaderPassEnabled(Passes.ZPRIME, prop.floatValue != 0);
         }
@@ -59,25 +56,17 @@ namespace WhaleYan {
             Object[] materials = materialEditor.targets;
 
             // Gather Properties
-            MaterialProperty _MainTex = MaterialEditor.GetMaterialProperty(
-                materials, MaterialProps._MainTex);
-            MaterialProperty _Color = MaterialEditor.GetMaterialProperty(
-                materials, MaterialProps._Color);
-            MaterialProperty _NormalTex = MaterialEditor.GetMaterialProperty(
-                materials, MaterialProps._NormalTex);
+            MaterialProperty _MainTex = MaterialEditor.GetMaterialProperty(materials, MaterialProps._MainTex);
+            MaterialProperty _Color = MaterialEditor.GetMaterialProperty(materials, MaterialProps._Color);
+            MaterialProperty _NormalTex = MaterialEditor.GetMaterialProperty(materials, MaterialProps._NormalTex);
 
-            MaterialProperty SPEC = MaterialEditor.GetMaterialProperty(
-                materials, MaterialProps.SPEC);
-            MaterialProperty _SpecColor = MaterialEditor.GetMaterialProperty(
-                materials, MaterialProps._SpecColor);
+            MaterialProperty SPEC = MaterialEditor.GetMaterialProperty(materials, MaterialProps.SPEC);
+            MaterialProperty _SpecColor = MaterialEditor.GetMaterialProperty(materials, MaterialProps._SpecColor);
 
-            MaterialProperty _CubeTex = MaterialEditor.GetMaterialProperty(
-                materials, MaterialProps._CubeTex);
+            MaterialProperty _CubeTex = MaterialEditor.GetMaterialProperty(materials, MaterialProps._CubeTex);
 
-            MaterialProperty OVERRIDE_FOG = MaterialEditor.GetMaterialProperty(
-                materials, MaterialProps.OVERRIDE_FOG);
-            MaterialProperty _LocalFogColor = MaterialEditor.GetMaterialProperty(
-                materials, MaterialProps._LocalFogColor);
+            MaterialProperty OVERRIDE_FOG = MaterialEditor.GetMaterialProperty(materials, MaterialProps.OVERRIDE_FOG);
+            MaterialProperty _LocalFogColor = MaterialEditor.GetMaterialProperty(materials, MaterialProps._LocalFogColor);
 
             // Draw Properties
             DrawTransparencyMode(materialEditor, materials); // Transparency Mode
@@ -102,11 +91,7 @@ namespace WhaleYan {
             DrawLocalFogControls(materialEditor, materials, OVERRIDE_FOG, _LocalFogColor);
         }
 
-        void DrawLocalFogControls(
-            MaterialEditor materialEditor,
-            Object[] materials,
-            MaterialProperty OVERRIDE_FOG,
-            MaterialProperty _LocalFogColor) {
+        void DrawLocalFogControls(MaterialEditor materialEditor, Object[] materials, MaterialProperty OVERRIDE_FOG, MaterialProperty _LocalFogColor) {
             GUILayout.Label("Fog Settings", EditorStyles.boldLabel);
 
             int numEnabled = 0;
@@ -119,7 +104,6 @@ namespace WhaleYan {
             bool hasMixed = someEnabled && numEnabled < materials.Length;
 
             EditorGUI.showMixedValue = hasMixed;
-
             EditorGUI.BeginChangeCheck();
             {
                 materialEditor.ShaderProperty(OVERRIDE_FOG, OVERRIDE_FOG.displayName);
@@ -139,14 +123,14 @@ namespace WhaleYan {
             bool hasMixed = false;
             int baseVal = (materials[0] as Material).renderQueue;
             int index = (baseVal < (int)RenderQueue.Transparent) ? 0 : 1;
-
             if (materials.Length > 1) {
                 for (int i = 1; i < materials.Length; i++) {
-                    if ((materials[i] as Material).renderQueue != baseVal) {
-                        hasMixed = true;
-                        index = -1;
-                        break;
-                    }
+                    if ((materials[i] as Material).renderQueue == baseVal)
+                        continue;
+
+                    hasMixed = true;
+                    index = -1;
+                    break;
                 }
             }
 
@@ -167,16 +151,11 @@ namespace WhaleYan {
 
             if (index > 0) // Transparent?
             {
-                MaterialProperty BlendSrc = MaterialEditor.GetMaterialProperty(
-                    materials, MaterialProps.BlendSrc);
-                MaterialProperty BlendDst = MaterialEditor.GetMaterialProperty(
-                    materials, MaterialProps.BlendDst);
-                MaterialProperty ZTest = MaterialEditor.GetMaterialProperty(
-                    materials, MaterialProps.ZTest);
-                MaterialProperty ZWrite = MaterialEditor.GetMaterialProperty(
-                    materials, MaterialProps.ZWrite);
-                MaterialProperty CullMode = MaterialEditor.GetMaterialProperty(
-                    materials, MaterialProps.CullMode);
+                MaterialProperty BlendSrc = MaterialEditor.GetMaterialProperty(materials, MaterialProps.BlendSrc);
+                MaterialProperty BlendDst = MaterialEditor.GetMaterialProperty(materials, MaterialProps.BlendDst);
+                MaterialProperty ZTest = MaterialEditor.GetMaterialProperty(materials, MaterialProps.ZTest);
+                MaterialProperty ZWrite = MaterialEditor.GetMaterialProperty(materials, MaterialProps.ZWrite);
+                MaterialProperty CullMode = MaterialEditor.GetMaterialProperty(materials, MaterialProps.CullMode);
 
                 GUILayout.Label("Transparent Properties", EditorStyles.boldLabel);
                 materialEditor.ShaderProperty(BlendSrc, BlendSrc.displayName);
@@ -190,9 +169,9 @@ namespace WhaleYan {
         void DrawReflectionControls(MaterialEditor materialEditor, Object[] materials, MaterialProperty _CubeTex) {
             int numReflective = 0;
             foreach (Material m in materials) {
-                bool cr = m.GetShaderPassEnabled(Passes.MIXED_REFLECTIVE) ||
-                    m.GetShaderPassEnabled(Passes.DYNAMIC_REFLECTIVE);
-                if (cr) numReflective++;
+                bool cr = m.GetShaderPassEnabled(Passes.MIXED_REFLECTIVE) || m.GetShaderPassEnabled(Passes.DYNAMIC_REFLECTIVE);
+                if (cr)
+                    numReflective++;
             }
 
             bool cubeReflections = numReflective > 0;
@@ -251,6 +230,7 @@ namespace WhaleYan {
                 // wipe any previous spec keywords
                 for (int i = 0; i < Keywords.SPEC_KEYWORDS.Length; i++)
                     DisableKeyword(materials, Keywords.SPEC_KEYWORDS[i]);
+
                 EnableKeyword(materials, Keywords.SPEC_KEYWORDS[index]);
             }
             EditorGUI.showMixedValue = false;

@@ -28,23 +28,23 @@ namespace WhaleYan.Rendering {
     [ExecuteInEditMode]
     public class EnvironmentLighting : MonoBehaviour {
         [Header("Ambient Lighting")]
-        public Color ambientSky;
-        public Color ambientHorizon;
-        public Color ambientGround;
+        [SerializeField] Color mAmbientSky;
+        [SerializeField] Color mAmbientHorizon;
+        [SerializeField] Color mAmbientGround;
 
         [Header("Fog")]
-        public Color fogColor;
-        public float fogNearDistance;
-        public float fogFarDistance;
+        [SerializeField] Color mFogColor;
+        [SerializeField] float mFogNearDistance;
+        [SerializeField] float mFogFarDistance;
 
         private void Update() {
-            RenderSettings.ambientSkyColor = ambientSky;
-            RenderSettings.ambientEquatorColor = ambientHorizon;
-            RenderSettings.ambientGroundColor = ambientGround;
+            RenderSettings.ambientSkyColor = mAmbientSky;
+            RenderSettings.ambientEquatorColor = mAmbientHorizon;
+            RenderSettings.ambientGroundColor = mAmbientGround;
 
-            RenderSettings.fogColor = fogColor;
-            RenderSettings.fogStartDistance = fogNearDistance;
-            RenderSettings.fogEndDistance = fogFarDistance;
+            RenderSettings.fogColor = mFogColor;
+            RenderSettings.fogStartDistance = mFogNearDistance;
+            RenderSettings.fogEndDistance = mFogFarDistance;
         }
     }
 }
