@@ -22,7 +22,7 @@
 * SOFTWARE.
 **/
 
-Shader "ColourMath/Transparent"
+Shader "WhaleYan/Transparent"
 {
 	Properties
 	{

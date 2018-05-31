@@ -25,15 +25,13 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-namespace ColourMath.Rendering
-{
+namespace WhaleYan.Rendering {
     [ExecuteInEditMode]
     [RequireComponent(typeof(Renderer))]
-    public class ShadowCaster : MonoBehaviour
-    {
+    public class ShadowCaster : MonoBehaviour {
         const int NO_SHADOW_INDEX = 0;
 
-        public static List<ShadowCaster> casters 
+        public static List<ShadowCaster> casters
             = new List<ShadowCaster>(TestRenderPipeline.MAX_SHADOWMAPS);
 
         // TODO: Make this less arbitrary by translating to texels
@@ -60,21 +58,13 @@ namespace ColourMath.Rendering
         /// Given a Renderer and a Light, calculates the Shadow View and Projection Matrices,
         /// as well as a distance value describing the far clip plane of the projection.
         /// </summary>
-        static void CalculateShadowMatrices(
-            int index, 
-            Light l, 
-            Renderer r,
-            out Matrix4x4 viewMatrix,
-            out Matrix4x4 projMatrix,
-            out float distance)
-        {
+        static void CalculateShadowMatrices(int index, Light light, Renderer renderer, out Matrix4x4 viewMatrix, out Matrix4x4 projMatrix, out float distance) {
             // TODO: Spot Shadows are a bit weird with this technique as it stands,
             //       since it is only rendering from a single perspective.
             //       A path forward might be something off-axis so that we can preserve
             //       texel density like from the other sources?
 
             float padding = casters[index].padding;
-
             float aspect = 1f;
             float nearClip = 0.01f;
             float farClip;
@@ -87,45 +77,35 @@ namespace ColourMath.Rendering
             Matrix4x4 projectionMatrix = Matrix4x4.identity;
 
             // The light type should dictate the type of projection we're building
-            bool ortho = 
-                l.type == LightType.Directional || l.type == LightType.Area;
+            bool ortho = light.type == LightType.Directional || light.type == LightType.Area;
 
             // Calculate a Shadow 'Camera' manually
-            if (ortho)
-            {
-                forward = l.transform.forward;
-                rotation = l.transform.rotation;
+            if (ortho) {
+                forward = light.transform.forward;
+                rotation = light.transform.rotation;
                 rotation = Quaternion.LookRotation(forward, Vector3.up);
-
-                position = l.type == LightType.Area ?
-                    l.transform.position :
-                    r.transform.position - (forward * r.bounds.extents.magnitude);
+                position = light.type == LightType.Area ? light.transform.position : renderer.transform.position - (forward * renderer.bounds.extents.magnitude);
             }
-            else
-            {
-                position = l.transform.position;
-
-                if (l.type == LightType.Point)
-                {
-                    forward = Vector3.Normalize(r.transform.position-l.transform.position);
+            else {
+                position = light.transform.position;
+                if (light.type == LightType.Point) {
+                    forward = Vector3.Normalize(renderer.transform.position - light.transform.position);
                     rotation = Quaternion.LookRotation(forward, Vector3.up);
                 }
-                else if (l.type == LightType.Spot)
-                {
-                    forward = l.transform.forward;
-                    rotation = l.transform.rotation;
+                else if (light.type == LightType.Spot) {
+                    forward = light.transform.forward;
+                    rotation = light.transform.rotation;
                 }
             }
 
             // Our world-to-shadow matrix is just the inverse of our TRS
             Matrix4x4 worldToShadow = Matrix4x4.TRS(position, rotation, Vector3.one).inverse;
-            
+
             // We need to get the extremes of the bounds relative to the shadow Camera
             // then build a tight-fitting frustum to get the absolute best texel-density.
 
-            Vector3 boundsMin = r.bounds.min;
-            Vector3 boundsMax = r.bounds.max;
-
+            Vector3 boundsMin = renderer.bounds.min;
+            Vector3 boundsMax = renderer.bounds.max;
             Vector3 fbl, fbr, ftl, ftr, bbl, bbr, btl, btr;
             fbl = boundsMin;
             fbr = new Vector3(boundsMax.x, boundsMin.y, boundsMin.z);
@@ -155,7 +135,7 @@ namespace ColourMath.Rendering
             Vector3 min = new Vector3(minX, minY, minZ);
             Vector3 max = new Vector3(maxX, maxY, maxZ);
 
-            farClip = l.type == LightType.Directional ? maxZ : l.range;
+            farClip = light.type == LightType.Directional ? maxZ : light.range;
 
             //DebugShadowFrustum(
             //    minX, minY, minZ,
@@ -164,8 +144,7 @@ namespace ColourMath.Rendering
             //    bbl,bbr,btl, btr,
             //    toShadowCaster.inverse);
 
-            if (ortho)
-            {
+            if (ortho) {
                 float size = .5f * (maxY - minY) + padding;
 
                 projectionMatrix = Matrix4x4.Ortho(
@@ -173,12 +152,11 @@ namespace ColourMath.Rendering
                     -size, size,
                     nearClip, farClip);
             }
-            else
-            {
-                if(l.type == LightType.Point)
+            else {
+                if (light.type == LightType.Point)
                     fov = Vector3.Angle(max, min);
-                else if(l.type == LightType.Spot)
-                    fov = l.spotAngle;
+                else if (light.type == LightType.Spot)
+                    fov = light.spotAngle;
 
                 projectionMatrix = Matrix4x4.Perspective(fov, aspect, nearClip, farClip);
             }
@@ -196,116 +174,76 @@ namespace ColourMath.Rendering
         /// Draws debug visuals for world-space and shadow-space AABB extents
         /// </summary>
         static void DebugShadowFrustum(
-            float minX, float minY, float minZ, 
+            float minX, float minY, float minZ,
             float maxX, float maxY, float maxZ,
             Vector3 fbl, Vector3 fbr, Vector3 ftl, Vector3 ftr,
             Vector3 bbl, Vector3 bbr, Vector3 btl, Vector3 btr,
-            Matrix4x4 localToWorld)
-        {
-            
-            //top
-            Debug.DrawLine( // bottom
-                localToWorld.MultiplyPoint3x4(fbl),
-                localToWorld.MultiplyPoint3x4(fbr),
-                Color.blue);
-            Debug.DrawLine( // left
-                localToWorld.MultiplyPoint3x4(fbl),
-                localToWorld.MultiplyPoint3x4(ftl),
-                Color.blue);
-            Debug.DrawLine( // top
-                localToWorld.MultiplyPoint3x4(ftl),
-                localToWorld.MultiplyPoint3x4(ftr),
-                Color.blue);
-            Debug.DrawLine( // right
-                localToWorld.MultiplyPoint3x4(fbr),
-                localToWorld.MultiplyPoint3x4(ftr),
-                Color.blue);
-            //back
-            Debug.DrawLine( // bottom
-                localToWorld.MultiplyPoint3x4(bbl),
-                localToWorld.MultiplyPoint3x4(bbr),
-                Color.green);
-            Debug.DrawLine( // left
-                localToWorld.MultiplyPoint3x4(bbl),
-                localToWorld.MultiplyPoint3x4(btl),
-                Color.green);
-            Debug.DrawLine( // top
-                localToWorld.MultiplyPoint3x4(btl),
-                localToWorld.MultiplyPoint3x4(btr),
-                Color.green);
-            Debug.DrawLine( // right
-                localToWorld.MultiplyPoint3x4(bbr),
-                localToWorld.MultiplyPoint3x4(btr),
-                Color.green);
+            Matrix4x4 localToWorld) {
 
-            Debug.DrawLine( // bottom
-                localToWorld.MultiplyPoint3x4(new Vector3(minX, minY, minZ)),
-                localToWorld.MultiplyPoint3x4(new Vector3(maxX, minY, minZ)),
-                Color.yellow);
-            Debug.DrawLine( // left
-                localToWorld.MultiplyPoint3x4(new Vector3(minX, minY, minZ)),
-                localToWorld.MultiplyPoint3x4(new Vector3(minX, maxY, minZ)),
-                Color.yellow);
-            Debug.DrawLine( // top
-                localToWorld.MultiplyPoint3x4(new Vector3(minX, maxY, minZ)),
-                localToWorld.MultiplyPoint3x4(new Vector3(maxX, maxY, minZ)),
-                Color.yellow);
-            Debug.DrawLine( // right
-                localToWorld.MultiplyPoint3x4(new Vector3(maxX, minY, minZ)),
-                localToWorld.MultiplyPoint3x4(new Vector3(maxX, maxY, minZ)),
-                Color.yellow);
+            //top------
+            // bottom
+            Debug.DrawLine(localToWorld.MultiplyPoint3x4(fbl), localToWorld.MultiplyPoint3x4(fbr), Color.blue);
+            // left
+            Debug.DrawLine(localToWorld.MultiplyPoint3x4(fbl), localToWorld.MultiplyPoint3x4(ftl), Color.blue);
+            // top
+            Debug.DrawLine(localToWorld.MultiplyPoint3x4(ftl), localToWorld.MultiplyPoint3x4(ftr), Color.blue);
+            // right
+            Debug.DrawLine(localToWorld.MultiplyPoint3x4(fbr), localToWorld.MultiplyPoint3x4(ftr), Color.blue);
 
-            Debug.DrawLine( // bottom
-                localToWorld.MultiplyPoint3x4(new Vector3(minX, minY, maxZ)),
-                localToWorld.MultiplyPoint3x4(new Vector3(maxX, minY, maxZ)),
-                Color.red);
-            Debug.DrawLine( // left
-                localToWorld.MultiplyPoint3x4(new Vector3(minX, minY, maxZ)),
-                localToWorld.MultiplyPoint3x4(new Vector3(minX, maxY, maxZ)),
-                Color.red);
-            Debug.DrawLine( // top
-                localToWorld.MultiplyPoint3x4(new Vector3(minX, maxY, maxZ)),
-                localToWorld.MultiplyPoint3x4(new Vector3(maxX, maxY, maxZ)),
-                Color.red);
-            Debug.DrawLine( // right
-                localToWorld.MultiplyPoint3x4(new Vector3(maxX, minY, maxZ)),
-                localToWorld.MultiplyPoint3x4(new Vector3(maxX, maxY, maxZ)),
-                Color.red);
+            //back------
+            // bottom
+            Debug.DrawLine(localToWorld.MultiplyPoint3x4(bbl), localToWorld.MultiplyPoint3x4(bbr), Color.green);
+            // left
+            Debug.DrawLine(localToWorld.MultiplyPoint3x4(bbl), localToWorld.MultiplyPoint3x4(btl), Color.green);
+            // top
+            Debug.DrawLine(localToWorld.MultiplyPoint3x4(btl), localToWorld.MultiplyPoint3x4(btr), Color.green);
+            // right
+            Debug.DrawLine(localToWorld.MultiplyPoint3x4(bbr), localToWorld.MultiplyPoint3x4(btr), Color.green);
+
+            // bottom
+            Debug.DrawLine(localToWorld.MultiplyPoint3x4(new Vector3(minX, minY, minZ)), localToWorld.MultiplyPoint3x4(new Vector3(maxX, minY, minZ)), Color.yellow);
+            // left
+            Debug.DrawLine(localToWorld.MultiplyPoint3x4(new Vector3(minX, minY, minZ)), localToWorld.MultiplyPoint3x4(new Vector3(minX, maxY, minZ)), Color.yellow);
+            // top
+            Debug.DrawLine(localToWorld.MultiplyPoint3x4(new Vector3(minX, maxY, minZ)), localToWorld.MultiplyPoint3x4(new Vector3(maxX, maxY, minZ)), Color.yellow);
+            // right
+            Debug.DrawLine(localToWorld.MultiplyPoint3x4(new Vector3(maxX, minY, minZ)), localToWorld.MultiplyPoint3x4(new Vector3(maxX, maxY, minZ)), Color.yellow);
+
+            // bottom
+            Debug.DrawLine(localToWorld.MultiplyPoint3x4(new Vector3(minX, minY, maxZ)), localToWorld.MultiplyPoint3x4(new Vector3(maxX, minY, maxZ)), Color.red);
+            // left
+            Debug.DrawLine(localToWorld.MultiplyPoint3x4(new Vector3(minX, minY, maxZ)), localToWorld.MultiplyPoint3x4(new Vector3(minX, maxY, maxZ)), Color.red);
+            // top
+            Debug.DrawLine(localToWorld.MultiplyPoint3x4(new Vector3(minX, maxY, maxZ)), localToWorld.MultiplyPoint3x4(new Vector3(maxX, maxY, maxZ)), Color.red);
+            // right
+            Debug.DrawLine(localToWorld.MultiplyPoint3x4(new Vector3(maxX, minY, maxZ)), localToWorld.MultiplyPoint3x4(new Vector3(maxX, maxY, maxZ)), Color.red);
         }
 
-        static int AddCaster(ShadowCaster c)
-        {
+        static int AddCaster(ShadowCaster c) {
             casters.Add(c);
             return casters.Count - 1;
         }
 
-        static void RemoveCaster(ShadowCaster c)
-        {
+        static void RemoveCaster(ShadowCaster c) {
             casters.Remove(c);
-            for (int i = 0; i < casters.Count; i++)
-            {
+            for (int i = 0; i < casters.Count; i++) {
                 casters[i].index = 1 << i;
                 casters[i].ApplyPropertyBlock();
             }
         }
 
-        void ApplyPropertyBlock()
-        {
+        void ApplyPropertyBlock() {
             renderer.GetPropertyBlock(mpb);
-            mpb.SetFloat(
-                ShaderLib.Variables.Renderer.SHADOW_INDEX,
-                index);
+            mpb.SetFloat(ShaderUtils.Variables.Renderer.SHADOW_INDEX, index);
             renderer.SetPropertyBlock(mpb);
         }
 
-        private void OnEnable()
-        {
+        private void OnEnable() {
             renderer = GetComponent<Renderer>();
             mpb = new MaterialPropertyBlock();
-            
+
             // We only allow for a finite number of casters, denoted by a constant value
-            if (casters.Count < TestRenderPipeline.MAX_SHADOWMAPS)
-            {
+            if (casters.Count < TestRenderPipeline.MAX_SHADOWMAPS) {
                 int i = AddCaster(this);
                 index = 1 << i;
                 ApplyPropertyBlock();
@@ -317,25 +255,15 @@ namespace ColourMath.Rendering
                     TestRenderPipeline.MAX_SHADOWMAPS));
         }
 
-        private void OnDisable()
-        {
+        private void OnDisable() {
             RemoveCaster(this); // Remove this caster and update all others
             index = -1;
-
             renderer.GetPropertyBlock(mpb);
-            mpb.SetFloat(
-                ShaderLib.Variables.Renderer.SHADOW_INDEX, 
-                NO_SHADOW_INDEX);
+            mpb.SetFloat(ShaderUtils.Variables.Renderer.SHADOW_INDEX, NO_SHADOW_INDEX);
             renderer.SetPropertyBlock(mpb);
         }
 
-        public void SetupShadowMatrices(
-            int index, 
-            Light shadowLight, 
-            out Matrix4x4 view, 
-            out Matrix4x4 proj,
-            out float d)
-        {
+        public void SetupShadowMatrices(int index, Light shadowLight, out Matrix4x4 view, out Matrix4x4 proj, out float d) {
             CalculateShadowMatrices(index, shadowLight, renderer, out view, out proj, out d);
         }
     }

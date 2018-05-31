@@ -27,41 +27,33 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 
-namespace ColourMath.Rendering
-{
-    [CreateAssetMenu(fileName ="New RenderPipeline", menuName = "ColourMath/Rendering/Render Pipeline")]
-    public class TestRenderPipeline : RenderPipelineAsset
-    {
+namespace WhaleYan.Rendering {
+    [CreateAssetMenu(fileName = "New RenderPipeline", menuName = "WhaleYan/Rendering/Render Pipeline")]
+    public class TestRenderPipeline : RenderPipelineAsset {
         public const int MAX_SHADOWMAPS = 4;
-
         [Tooltip("The scale of the Frame Buffer. 1 is native scale.")]
-        [Range(.1f,1f)]
-        public float renderScale = 1f;
-
+        [Range(.1f, 1f)]
+        public float mRenderScale = 1f;
         [Tooltip("Maximum number of real-time lights.")]
-        [Range(1,8)]
-        public int maxLights = 8;
+        [Range(1, 8)]
+        public int mMaxLights = 8;
+        public int mShadowMapSize = 2048;
 
-        public int shadowMapSize = 2048;
-
-        protected override IRenderPipeline InternalCreatePipeline()
-        {
+        protected override IRenderPipeline InternalCreatePipeline() {
             return new TestRenderPipelineInstance(this);
         }
 
         // New Materials will use this Shader automatically
-        public override Shader GetDefaultShader()
-        {
-            return ShaderLib.Shaders.SafeFind(ShaderLib.Shaders.BASIC);
+        public override Shader GetDefaultShader() {
+            return ShaderUtils.Shaders.FindShaderWithInfo(ShaderUtils.Shaders.BASIC);
         }
 
-        static Material defaultParticleMaterial;
-        public override Material GetDefaultParticleMaterial()
-        {
-            if(defaultParticleMaterial == null)
-                defaultParticleMaterial = new Material(ShaderLib.Shaders.SafeFind(ShaderLib.Shaders.TRANSPARENT));
+        static Material mDefaultParticleMaterial;
+        public override Material GetDefaultParticleMaterial() {
+            if (mDefaultParticleMaterial == null)
+                mDefaultParticleMaterial = new Material(ShaderUtils.Shaders.FindShaderWithInfo(ShaderUtils.Shaders.TRANSPARENT));
 
-            return defaultParticleMaterial;
+            return mDefaultParticleMaterial;
         }
     }
 }

@@ -25,9 +25,9 @@
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
-using ColourMath.Rendering;
+using WhaleYan.Rendering;
 
-namespace ColourMath
+namespace WhaleYan
 {
     // TODO: May need to do specific Renderer stuff
 
@@ -65,13 +65,13 @@ namespace ColourMath
                     renderer.shadowCastingMode == ShadowCastingMode.ShadowsOnly ||
                     renderer.shadowCastingMode == ShadowCastingMode.TwoSided)
                     prop_renderingLayerMask.intValue = 
-                        (int) (prop_renderingLayerMask.intValue |= (int) ShaderLib.RenderLayers.CastsShadows);
+                        (int) (prop_renderingLayerMask.intValue |= (int) ShaderUtils.RenderLayers.CastsShadows);
                 if (renderer.receiveShadows)
                     prop_renderingLayerMask.intValue = 
-                        (int) (prop_renderingLayerMask.intValue |= (int) ShaderLib.RenderLayers.ReceivesShadows);
+                        (int) (prop_renderingLayerMask.intValue |= (int) ShaderUtils.RenderLayers.ReceivesShadows);
                 if (renderer.lightmapIndex != -1)
                     prop_renderingLayerMask.intValue = 
-                        (int) (prop_renderingLayerMask.intValue |= (int) ShaderLib.RenderLayers.BakedLightmaps);
+                        (int) (prop_renderingLayerMask.intValue |= (int) ShaderUtils.RenderLayers.BakedLightmaps);
 
                 serializedObject.ApplyModifiedProperties();
             }

@@ -24,37 +24,31 @@
 
 using UnityEngine;
 using UnityEditor;
-using ColourMath.Rendering;
+using WhaleYan.Rendering;
 
-namespace ColourMath
-{
+namespace WhaleYan {
     [InitializeOnLoad]
-    public class LightmappingEvents
-    {
-        static LightmappingEvents()
-        {
+    public class LightmappingEvents {
+        static LightmappingEvents() {
             Lightmapping.started += LightmappingStarted;
             Lightmapping.completed += LightmappingCompleted;
         }
 
-        static void LightmappingStarted()
-        {
+        static void LightmappingStarted() {
             //Debug.Log("Lightmapping Started.");
         }
 
-        static void LightmappingCompleted()
-        {
+        static void LightmappingCompleted() {
             //Debug.Log("Lightmapping Completed.");
-            uint lightmapFlag = ShaderLib.RenderLayers.BakedLightmaps;
+            uint lightmapFlag = ShaderUtils.RenderLayers.BakedLightmaps;
 
             Renderer[] allRenderers = Transform.FindObjectsOfType<Renderer>();
-            foreach(Renderer renderer in allRenderers)
-            {
+            foreach (Renderer renderer in allRenderers) {
                 // If Lightmap, make sure it doesn't have that flag.
                 if (renderer.lightmapIndex == -1)
-                    RendererUtilities.RemoveFlagsFromMask(renderer, lightmapFlag);
+                    RendererUtils.RemoveFlagsFromMask(renderer, lightmapFlag);
                 else
-                    RendererUtilities.AddFlagsToMask(renderer, lightmapFlag);
+                    RendererUtils.AddFlagsToMask(renderer, lightmapFlag);
             }
         }
     }

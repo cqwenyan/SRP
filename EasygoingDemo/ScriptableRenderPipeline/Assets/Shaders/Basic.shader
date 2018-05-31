@@ -22,7 +22,7 @@
 * SOFTWARE.
 **/
 
-Shader "ColourMath/Basic"
+Shader "WhaleYan/Basic"
 {
 	Properties
 	{
@@ -195,5 +195,5 @@ Shader "ColourMath/Basic"
 			ENDCG
 		}
 	}
-	CustomEditor "ColourMath.BasicShaderGUI"
+	CustomEditor "WhaleYan.BasicShaderGUI"
 }

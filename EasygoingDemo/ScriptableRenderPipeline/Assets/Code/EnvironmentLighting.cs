@@ -24,11 +24,9 @@
 
 using UnityEngine;
 
-namespace ColourMath.Rendering
-{
+namespace WhaleYan.Rendering {
     [ExecuteInEditMode]
-    public class EnvironmentLighting : MonoBehaviour
-    {
+    public class EnvironmentLighting : MonoBehaviour {
         [Header("Ambient Lighting")]
         public Color ambientSky;
         public Color ambientHorizon;
@@ -39,8 +37,7 @@ namespace ColourMath.Rendering
         public float fogNearDistance;
         public float fogFarDistance;
 
-        private void Update()
-        {
+        private void Update() {
             RenderSettings.ambientSkyColor = ambientSky;
             RenderSettings.ambientEquatorColor = ambientHorizon;
             RenderSettings.ambientGroundColor = ambientGround;

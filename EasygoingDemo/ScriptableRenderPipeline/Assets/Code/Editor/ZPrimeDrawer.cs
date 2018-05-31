@@ -24,9 +24,9 @@
 
 using UnityEngine;
 using UnityEditor;
-using ColourMath.Rendering;
+using WhaleYan.Rendering;
 
-namespace ColourMath
+namespace WhaleYan
 {
     public class ZPrimeDrawer : MaterialPropertyDrawer
     {
@@ -53,7 +53,7 @@ namespace ColourMath
             {
                 prop.floatValue = b ? 1 : 0;
                 foreach (Material m in editor.targets)
-                    m.SetShaderPassEnabled(ShaderLib.Passes.ZPRIME, b);
+                    m.SetShaderPassEnabled(ShaderUtils.Passes.ZPRIME, b);
             }
         }
 
